@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitor UPS · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1 id="dev-name">Monitor UPS</h1>
+        <p id="dev-sub" class="muted">Conectando con la Raspberry…</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <span id="link" class="link" data-state="wait"><i></i><span>Conectando</span></span>
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <!-- Diagrama unifilar en vivo -->
+    <section class="flow-panel" aria-label="Flujo de energía">
+      <div class="mode-line">
+        <h2 id="mode">Esperando lecturas</h2>
+        <p id="mode-detail" class="muted"></p>
+      </div>
+      <div class="flow-scroll"><svg id="flow" viewBox="0 0 1000 300" role="img" aria-label="Diagrama de flujo de energía de la UPS">
+        <defs>
+          <linearGradient id="gbat" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="var(--batt)"/><stop offset="1" stop-color="#a78bfa"/>
+          </linearGradient>
+        </defs>
+        <!-- trazos base -->
+        <path class="wire" d="M150 120 H430"/>
+        <path class="wire" d="M570 120 H850"/>
+        <path class="wire wire-byp" d="M120 88 V38 H880 V88"/>
+        <path class="wire" d="M500 170 V212"/>
+        <!-- flujos animados -->
+        <path id="f-in"  class="flow f-grid" d="M150 120 H430"/>
+        <path id="f-out" class="flow f-grid" d="M570 120 H850"/>
+        <path id="f-byp" class="flow f-byp"  d="M120 88 V38 H880 V88"/>
+        <path id="f-bat" class="flow f-batt" d="M500 212 V170"/>
+
+        <!-- Red -->
+        <g class="node" id="n-grid">
+          <circle cx="120" cy="120" r="32"/>
+          <path class="sine" d="M100 120 q5 -14 10 0 t10 0 t10 0 t10 0"/>
+          <text x="120" y="190" class="lbl">Red eléctrica</text>
+          <text x="120" y="222" class="val" id="t-in-v">—</text>
+          <text x="120" y="246" class="sub" id="t-in-f">— Hz</text>
+        </g>
+        <text x="500" y="30" class="sub byp-lbl" id="t-byp">Bypass</text>
+
+        <!-- UPS -->
+        <g class="node" id="n-ups">
+          <rect x="430" y="70" width="140" height="100" rx="10" class="box"/>
+          <text x="500" y="108" class="ups-name">UPS</text>
+          <text x="500" y="134" class="sub" id="t-ups-mode">—</text>
+          <text x="500" y="156" class="sub" id="t-temp">— °C</text>
+        </g>
+
+        <!-- Batería -->
+        <g class="node" id="n-batt">
+          <rect x="455" y="212" width="90" height="48" rx="6" class="box bat-shell"/>
+          <rect x="545" y="226" width="6" height="20" rx="2" class="bat-tip"/>
+          <rect x="459" y="216" width="0" height="40" rx="3" id="bat-fill" fill="url(#gbat)"/>
+          <text x="500" y="243" class="bat-pct" id="t-bat-pct">—</text>
+          <text x="570" y="232" class="sub start" id="t-bat-v">— V</text>
+          <text x="570" y="254" class="sub start" id="t-bat-rt">autonomía —</text>
+        </g>
+
+        <!-- Carga -->
+        <g class="node" id="n-load">
+          <circle cx="880" cy="120" r="32"/>
+          <path class="plug" d="M868 110 v-8 M892 110 v-8 M862 110 h36 v8 a18 18 0 0 1 -36 0z M880 136 v10"/>
+          <text x="880" y="190" class="lbl">Carga conectada</text>
+          <text x="880" y="222" class="val" id="t-out-v">—</text>
+          <text x="880" y="246" class="sub" id="t-out-p">— W</text>
+        </g>
+        <!-- barra de carga % -->
+        <g id="loadbar">
+          <rect x="600" y="138" width="220" height="8" rx="4" class="lb-bg"/>
+          <rect x="600" y="138" width="0" height="8" rx="4" class="lb-fg" id="lb-fg"/>
+          <text x="600" y="168" class="sub start" id="t-load">Carga —%</text>
+        </g>
+      </svg></div>
+      <ul id="active-alarms" class="alarm-strip" aria-live="polite"></ul>
+    </section>
+
+    <!-- Métricas -->
+    <section aria-labelledby="h-metrics">
+      <h2 id="h-metrics" class="sec">Mediciones en vivo</h2>
+      <div id="tiles" class="tiles"></div>
+      <p class="note muted">Los valores con ≈ son calculados a partir de la carga y los datos de placa; la UPS no los reporta directamente.</p>
+    </section>
+
+    <!-- Tendencias -->
+    <section class="trend" aria-labelledby="h-trend">
+      <div class="trend-head">
+        <h2 id="h-trend" class="sec">Tendencias</h2>
+        <div class="seg" id="ranges" role="tablist">
+          <button data-r="3600000" aria-selected="true">1 h</button>
+          <button data-r="21600000">6 h</button>
+          <button data-r="86400000">24 h</button>
+          <button data-r="604800000">7 días</button>
+          <button data-r="2592000000">30 días</button>
+        </div>
+      </div>
+      <div class="seg groups" id="groups"></div>
+      <div class="trend-body">
+        <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
+        <aside class="summary" id="summary" aria-label="Resumen del periodo"></aside>
+      </div>
+      <a id="csv" class="btn ghost" href="#" download>Descargar CSV del periodo</a>
+    </section>
+
+    <div class="split">
+      <section aria-labelledby="h-events">
+        <h2 id="h-events" class="sec">Eventos</h2>
+        <ol id="events" class="events"></ol>
+      </section>
+      <section aria-labelledby="h-raw">
+        <div class="raw-head">
+          <h2 id="h-raw" class="sec">Datos del puerto</h2>
+          <input id="raw-filter" type="search" placeholder="Filtrar variables" aria-label="Filtrar variables">
+        </div>
+        <div class="raw-wrap"><table class="raw"><tbody id="raw"></tbody></table></div>
+      </section>
+    </div>
+
+    <section class="device" aria-labelledby="h-dev">
+      <h2 id="h-dev" class="sec">Equipo</h2>
+      <dl id="dev-info" class="dl"></dl>
+      <div id="cmd-box" class="cmds" hidden>
+        <label>Clave de comandos <input id="cmd-key" type="password" autocomplete="off"></label>
+        <div id="cmd-buttons"></div>
+        <p id="cmd-msg" class="muted" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
