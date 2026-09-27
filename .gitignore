@@ -7,3 +7,6 @@ edge/data/
 edge/config/local.json
 .DS_Store
 Thumbs.db
+.lgd-nfy*
+__pycache__/
+*.pyc

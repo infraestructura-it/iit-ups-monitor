@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bypass · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1>Bypass automático</h1>
+        <p id="sub" class="muted">Transfiere la carga a la red si la UPS deja de entregar energía</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html" aria-current="page"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>Asistente IA</a></nav>
+    <div class="top-right">
+      <span id="link" class="link" data-state="wait"><i></i><span>Conectando</span></span>
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <section class="flow-panel" aria-label="Estado del bypass">
+      <div class="mode-line">
+        <h2 id="bp-title">Cargando estado</h2>
+        <p id="bp-detail" class="muted"></p>
+      </div>
+      <div class="flow-scroll">
+      <svg id="bp-svg" viewBox="0 0 1000 340" role="img" aria-label="Diagrama del bypass">
+        <!-- red -> UPS -->
+        <path id="w-feed" class="bp-wire" d="M120 112 V208"/>
+        <!-- camino bypass: red -> K2 -> barra de carga -->
+        <path id="w-byp-a" class="bp-wire" d="M152 80 H440"/>
+        <path id="w-byp-b" class="bp-wire" d="M520 80 H760 V165"/>
+        <!-- camino UPS: UPS -> K1 -> barra de carga -->
+        <path id="w-ups-a" class="bp-wire" d="M152 240 H440"/>
+        <path id="w-ups-b" class="bp-wire" d="M520 240 H760 V165"/>
+        <path id="w-load" class="bp-wire" d="M760 165 H848"/>
+
+        <g class="node"><circle cx="120" cy="80" r="32"/><path class="sine" d="M100 80 q5 -14 10 0 t10 0 t10 0 t10 0"/>
+          <text x="120" y="30" class="lbl">Red eléctrica</text></g>
+        <text x="190" y="62" class="sense unk start" id="s-grid">red —</text>
+
+        <g class="node"><rect class="box" x="70" y="208" width="100" height="64" rx="10"/><text x="120" y="247" class="ups-name">UPS</text></g>
+        <text x="190" y="226" class="sense unk start" id="s-ups">salida —</text>
+
+        <g class="contact" id="k2" transform="translate(440 80)">
+          <circle cx="0" cy="0" r="7"/><circle cx="80" cy="0" r="7"/><line class="blade" x1="0" y1="0" x2="80" y2="0"/>
+          <text x="40" y="-24" text-anchor="middle">K2 bypass</text><text class="st" x="40" y="62" text-anchor="middle" id="k2-st">abierto</text></g>
+        <g class="contact" id="k1" transform="translate(440 240)">
+          <circle cx="0" cy="0" r="7"/><circle cx="80" cy="0" r="7"/><line class="blade" x1="0" y1="0" x2="80" y2="0"/>
+          <text x="40" y="-24" text-anchor="middle">K1 salida UPS</text><text class="st" x="40" y="62" text-anchor="middle" id="k1-st">cerrado</text></g>
+
+        <g class="node"><circle cx="880" cy="165" r="32"/>
+          <path class="plug" d="M868 155 v-8 M892 155 v-8 M862 155 h36 v8 a18 18 0 0 1 -36 0z M880 181 v10"/>
+          <text x="880" y="228" class="lbl">Carga</text></g>
+      </svg>
+      </div>
+    </section>
+
+    <div class="bp-grid">
+      <section class="panel" aria-labelledby="h-ctl">
+        <h2 id="h-ctl" class="sec" style="margin:0">Control</h2>
+        <div id="lock" class="lock-box" hidden></div>
+        <div id="disabled" class="lock-box" hidden>
+          El bypass está deshabilitado. Revisa el cableado según <code>docs/BYPASS.md</code>, ajusta los pines en
+          <code>config/local.json</code> y pon <code>BYPASS_ENABLED=true</code> en el <code>.env</code>.
+        </div>
+        <div class="row">
+          <span class="muted">Modo</span>
+          <div class="seg" id="mode" role="radiogroup" aria-label="Modo del bypass">
+            <button data-m="auto" role="radio">Automático</button>
+            <button data-m="manual" role="radio">Manual</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn warn" id="to-bypass">Transferir a bypass</button>
+          <button class="btn ghost" id="to-ups" style="margin:0">Volver a la UPS</button>
+          <button class="btn danger" id="reset" hidden>Restablecer bloqueo</button>
+        </div>
+        <p class="muted" style="font-size:.85rem">En automático la transferencia ocurre sola. Las transferencias a mano requieren modo manual y la clave de comandos.</p>
+        <div id="sim" class="sim-box" hidden>
+          <span class="badge sim" style="justify-self:start">Simulación: GPIO sin hardware</span>
+          <div class="row">
+            <button class="btn ghost" data-sim="ups:0" style="margin:0">Falla salida UPS</button>
+            <button class="btn ghost" data-sim="ups:1" style="margin:0">Restaurar salida UPS</button>
+            <button class="btn ghost" data-sim="grid:0" style="margin:0">Corte de red</button>
+            <button class="btn ghost" data-sim="grid:1" style="margin:0">Restaurar red</button>
+          </div>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="h-cfg">
+        <h2 id="h-cfg" class="sec" style="margin:0">Parámetros</h2>
+        <dl id="cfg" class="kv"></dl>
+      </section>
+    </div>
+
+    <section aria-labelledby="h-bpev">
+      <h2 id="h-bpev" class="sec">Historial del bypass</h2>
+      <ol id="events" class="events"></ol>
+    </section>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/bypass.js"></script>
+</body>
+</html>

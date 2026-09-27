@@ -3,12 +3,17 @@
 //   Capa 2 Núcleo       -> storage/ + alarms/
 //   Capa 3 Servicio web -> api/ + public/ (dashboard local)
 //   Capa 4 Nube         -> cloud/ (Supabase)
+// Módulos: 1 UPS | 2 Bypass (bypass/) | 3 GPIO (gpio/) | 4 IA (ai/)
 import { loadConfig } from './config.js';
 import { createDriver } from './drivers/index.js';
 import { Store } from './storage/store.js';
 import { AlarmEngine } from './alarms/engine.js';
 import { createServer } from './api/server.js';
 import { CloudSync } from './cloud/supabase-sync.js';
+import { GpioService } from './gpio/gpio-service.js';
+import { BypassController } from './bypass/bypass-controller.js';
+import { Assistant } from './ai/assistant.js';
+import path from 'node:path';
 import { log } from './util/log.js';
 
 const cfg = loadConfig();
@@ -22,7 +27,17 @@ if (cfg.cloud.enabled) {
   else state.cloud = new CloudSync(cfg.cloud, cfg.device, store);
 }
 
-const api = createServer({ cfg, store, driver, alarms, state });
+const gpio = new GpioService(cfg.gpio, path.dirname(cfg.storage.path));
+await gpio.init();
+const bypass = new BypassController(cfg.bypass, gpio, () => ({ reading: state.latest, commOk: state.commOk }));
+const assistant = new Assistant(cfg.ai, { cfg, state, store, alarms, driver, gpio, bypass });
+const api = createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant });
+
+gpio.on('change', (p) => api.broadcast('gpio', p));
+bypass.on('state', (s) => api.broadcast('bypass', s));
+bypass.on('event', (e) => emit([e]));
+try { await bypass.init(); }
+catch (e) { log.error('Bypass NO iniciado:', e.message); bypass.state = 'bloqueado'; bypass.lockReason = e.message; }
 
 function emit(events) {
   for (const e of events) {
@@ -60,10 +75,12 @@ tick();
 
 async function shutdown() {
   log.info('Deteniendo servicio…');
+  bypass.stop();
   state.cloud?.stop();
   await state.cloud?.push().catch(() => {});
   await driver.close().catch(() => {});
   await api.close();
+  await gpio.close().catch(() => {});
   store.close();
   process.exit(0);
 }

@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=iitups
 Group=iitups
-SupplementaryGroups=dialout nut
+SupplementaryGroups=dialout gpio nut
 WorkingDirectory=/opt/iit-ups-monitor/edge
 ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/index.js
 Restart=always

@@ -57,6 +57,10 @@ export function loadConfig() {
   set(cfg, ['driver', 'nameplate', 'batteryCells'], num(e.UPS_BATTERY_CELLS));
   set(cfg, ['api', 'port'], num(e.HTTP_PORT));
   set(cfg, ['api', 'commandKey'], e.API_COMMAND_KEY || undefined);
+  set(cfg, ['gpio', 'backend'], e.GPIO_BACKEND || undefined);
+  set(cfg, ['bypass', 'enabled'], bool(e.BYPASS_ENABLED));
+  set(cfg, ['ai', 'apiKey'], e.ANTHROPIC_API_KEY || undefined);
+  set(cfg, ['ai', 'model'], e.ANTHROPIC_MODEL || undefined);
   set(cfg, ['cloud', 'enabled'], bool(e.CLOUD_ENABLED));
   set(cfg, ['cloud', 'url'], e.SUPABASE_URL || undefined);
   set(cfg, ['cloud', 'serviceKey'], e.SUPABASE_SERVICE_KEY || undefined);

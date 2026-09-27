@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GPIO · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1>Salidas y entradas GPIO</h1>
+        <p id="sub" class="muted">Conector de 40 pines de la Raspberry Pi 5</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html"><b>2</b>Bypass</a><a href="gpio.html" aria-current="page"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>Asistente IA</a></nav>
+    <div class="top-right">
+      <span id="link" class="link" data-state="wait"><i></i><span>Conectando</span></span>
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" aria-label="Resumen">
+      <div class="row" style="justify-content:space-between">
+        <h2 class="sec" style="margin:0" id="summary">Cargando pines</h2>
+        <span id="backend" class="badge"></span>
+      </div>
+    </section>
+
+    <div class="gpio-layout">
+      <section class="board" aria-label="Conector de 40 pines">
+        <div id="header40" class="header40"></div>
+        <div class="legend">
+          <span><i style="border-color:var(--grid)"></i>Salida</span>
+          <span><i style="border-color:var(--ok);border-radius:50%"></i>Entrada</span>
+          <span><i style="border-color:#a78bfa"></i>Bypass</span>
+          <span><i style="border-color:#3d6b58;border-style:dashed"></i>Libre</span>
+          <span><i style="border-color:#ff4d6d"></i>5 V</span>
+          <span><i style="border-color:#f5a524"></i>3,3 V</span>
+          <span><i style="border-color:#3a4452"></i>GND</span>
+        </div>
+      </section>
+
+      <section class="panel editor" id="editor" aria-live="polite">
+        <p class="muted">Toca un pin del conector para configurarlo como salida o entrada.</p>
+      </section>
+    </div>
+
+    <section aria-labelledby="h-used">
+      <h2 id="h-used" class="sec">Pines en uso</h2>
+      <div class="raw-wrap"><table class="pin-list"><thead><tr><th>GPIO</th><th>Pin</th><th>Nombre</th><th>Modo</th><th>Estado</th><th>Dueño</th></tr></thead><tbody id="used"></tbody></table></div>
+      <p class="note muted">Los 26 GPIO del conector son el máximo nativo. Para más salidas se agregan expansores I2C MCP23017 (16 por chip, hasta 8 chips: 128 líneas) en GPIO2/GPIO3.
+      Las salidas de 3,3 V no mueven relés directamente: usa módulos de relé con optoacoplador o transistor.</p>
+    </section>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/gpio.js"></script>
+</body>
+</html>

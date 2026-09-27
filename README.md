@@ -1,8 +1,13 @@
 # IIT UPS Monitor
 
-Monitoreo web de UPS con **Raspberry Pi 5** leyendo el puerto **RS232** o **USB** de la UPS.
-Dashboards en vivo de voltajes, corrientes, frecuencias, potencias, batería, temperatura, estados,
-alarmas y **todas las variables que entrega el puerto**. Arquitectura por capas, todo web.
+Monitoreo y control web de UPS con **Raspberry Pi 5**. Arquitectura por capas, todo web, en cuatro módulos:
+
+| Módulo | Menú | Qué hace |
+|---|---|---|
+| 1 | **UPS** | Lee el puerto RS232 o USB: voltajes, corrientes, frecuencias, potencias, batería, temperatura, estados, alarmas y todas las variables del puerto |
+| 2 | **Bypass** | Transfiere la carga a la red si la UPS deja de entregar energía (break-before-make, a prueba de fallas). Ver [docs/BYPASS.md](docs/BYPASS.md) |
+| 3 | **GPIO** | Los 26 GPIO del conector de 40 pines como salidas o entradas, con nombres y estado persistente |
+| 4 | **Asistente IA** | Claude consulta los datos reales y responde en lenguaje natural. Puede proponer acciones GPIO que tú confirmas |
 
 Infraestructura-IT, Bogotá.
 
@@ -69,7 +74,10 @@ Dashboard local: `http://IP-DE-LA-PI:8080`. Actualizar: `./deploy/update.sh`.
 | `UPS_PORT` | Puerto serie, por defecto `/dev/ups-serial` (enlace creado por udev) |
 | `UPS_RATED_VA`, `UPS_POWER_FACTOR` | Datos de placa: mejoran potencia y corriente estimadas |
 | `UPS_BATTERY_CELLS` | Celdas del banco (12 V = 6 celdas) si la UPS no reporta voltaje nominal |
-| `API_COMMAND_KEY` | Habilita prueba de batería y beeper desde la web |
+| `API_COMMAND_KEY` | Clave para toda acción física: comandos a la UPS, GPIO, bypass y confirmar acciones de la IA |
+| `GPIO_BACKEND` | `auto` (lgpio en la Pi, simulado en PC), `lgpio` o `mock` |
+| `BYPASS_ENABLED` | Activa el módulo de bypass. Lee [docs/BYPASS.md](docs/BYPASS.md) antes |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Asistente IA (Claude) |
 | `CLOUD_ENABLED`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Réplica a la nube |
 
 Umbrales de alarma en `edge/config/default.json` (por defecto red Colombia 120 V / 60 Hz).
@@ -87,7 +95,22 @@ Para cambiarlos sin tocar el repo crea `edge/config/local.json` con solo lo que 
 | GET | `/api/events` | Eventos y alarmas |
 | GET | `/api/export.csv?from&to` | Exporta a CSV (separador `;`, abre directo en Excel) |
 | POST | `/api/command` | `{command}` con cabecera `x-api-key` |
-| WS | `/ws` | `reading`, `event`, `alarms`, `comm` en vivo |
+| GET | `/api/gpio` | Los 26 GPIO con modo, dueño y estado |
+| PUT | `/api/gpio/:gpio` | Configura un pin `{mode, name, activeLow, pull, persist}` (clave) |
+| POST | `/api/gpio/:gpio/set` | `{active}` activa o desactiva una salida (clave) |
+| GET / POST | `/api/bypass` | Estado / `{action: mode, transfer, reset}` (clave) |
+| GET / POST | `/api/ai`, `/api/ai/chat` | Estado del asistente / conversación `{messages}` |
+| POST | `/api/ai/confirm` | `{id, approve}` confirma una acción propuesta por la IA (clave) |
+| WS | `/ws` | `reading`, `event`, `alarms`, `comm`, `gpio`, `bypass` en vivo |
+
+## Asistente IA
+
+La IA usa herramientas para leer el estado de la UPS, las estadísticas, el historial, los eventos, el bypass
+y los GPIO antes de responder, así que las cifras que da son las reales. Límites de diseño:
+
+- **Solo lectura** sobre la UPS y el bypass. Transferir es siempre decisión humana.
+- Para GPIO **propone**; la acción queda pendiente hasta que la confirmas en pantalla con la clave.
+- Límite configurable de consultas por hora (`ai.maxRequestsPerHour`) para controlar el costo de la API.
 
 ## Capa nube
 
@@ -103,4 +126,5 @@ Sin internet la Pi guarda todo en una cola local y la vacía cuando vuelve la co
 ```bash
 cd edge && npm test
 ```
+Incluye pruebas del bypass (secuencias break-before-make, interlock, bloqueos) y del asistente con la API simulada.
 `edge/test/fake-ups.js` emula una UPS Megatec por puerto serie virtual (`socat`) para probar el driver real sin hardware.

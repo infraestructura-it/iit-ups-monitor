@@ -35,11 +35,26 @@
   "alarms": {
     "debounce": 2,
     "commLostAfterMs": 10000,
-    "inputVoltage": { "min": 102, "max": 132 },
-    "inputFrequency": { "min": 58.8, "max": 61.2 },
-    "loadPct": { "warn": 80, "crit": 95 },
-    "batteryPct": { "warn": 50, "crit": 20 },
-    "temperatureC": { "warn": 40, "crit": 50 }
+    "inputVoltage": {
+      "min": 102,
+      "max": 132
+    },
+    "inputFrequency": {
+      "min": 58.8,
+      "max": 61.2
+    },
+    "loadPct": {
+      "warn": 80,
+      "crit": 95
+    },
+    "batteryPct": {
+      "warn": 50,
+      "crit": 20
+    },
+    "temperatureC": {
+      "warn": 40,
+      "crit": 50
+    }
   },
   "api": {
     "host": "0.0.0.0",
@@ -53,5 +68,42 @@
     "sampleEverySec": 30,
     "pushEverySec": 30,
     "maxOutbox": 50000
+  },
+  "gpio": {
+    "backend": "auto",
+    "pollMs": 50,
+    "reserved": []
+  },
+  "bypass": {
+    "enabled": false,
+    "mode": "auto",
+    "pins": {
+      "relayUps": 5,
+      "relayBypass": 6,
+      "senseUpsOut": 16,
+      "senseGrid": 20,
+      "feedbackUps": null,
+      "feedbackBypass": null
+    },
+    "relayActiveLow": true,
+    "senseActiveLow": true,
+    "sensePull": "up",
+    "tickMs": 100,
+    "confirmMs": 500,
+    "deadTimeMs": 300,
+    "returnDelaySec": 60,
+    "autoReturn": true,
+    "maxTransfers": 3,
+    "windowMin": 10,
+    "useUpsData": true,
+    "outputMinV": 90,
+    "gridMinV": 90
+  },
+  "ai": {
+    "apiKey": "",
+    "model": "claude-sonnet-5",
+    "maxTokens": 1500,
+    "maxToolRounds": 6,
+    "maxRequestsPerHour": 60
   }
 }

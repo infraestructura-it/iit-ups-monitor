@@ -15,7 +15,7 @@ say() { echo -e "\e[36m==>\e[0m $*"; }
 
 say "Paquetes base"
 apt-get update -y
-apt-get install -y curl git ca-certificates rsync
+apt-get install -y curl git ca-certificates rsync python3 python3-lgpio
 
 # node:sqlite requiere Node >= 22.13
 NODE_OK=0
@@ -46,6 +46,7 @@ fi
 say "Usuario de servicio $SVC_USER"
 id $SVC_USER >/dev/null 2>&1 || useradd --system --home $APP_DIR --shell /usr/sbin/nologin $SVC_USER
 usermod -aG dialout $SVC_USER
+getent group gpio >/dev/null && usermod -aG gpio $SVC_USER || true
 getent group nut >/dev/null && usermod -aG nut $SVC_USER || true
 
 say "Copiando aplicación a $APP_DIR"
@@ -64,7 +65,8 @@ udevadm control --reload-rules && udevadm trigger
 
 say "Servicio systemd"
 cp "$SRC_DIR/deploy/systemd/iit-ups-monitor.service" /etc/systemd/system/
-getent group nut >/dev/null || sed -i 's/ nut$//' /etc/systemd/system/iit-ups-monitor.service
+getent group nut  >/dev/null || sed -i 's/ nut//'  /etc/systemd/system/iit-ups-monitor.service
+getent group gpio >/dev/null || sed -i 's/ gpio//' /etc/systemd/system/iit-ups-monitor.service
 systemctl daemon-reload
 systemctl enable --now iit-ups-monitor
 [[ $WITH_NUT -eq 1 ]] && systemctl restart nut-server || true

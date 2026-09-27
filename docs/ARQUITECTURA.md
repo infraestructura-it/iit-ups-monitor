@@ -59,3 +59,14 @@ Acceso remoto sin abrir puertos: ZeroTier o Cloudflare Tunnel apuntando a `local
 - `outbox` persistente: cortes de internet no pierden datos (tope `maxOutbox`).
 - `ups_devices.latest` guarda el último estado completo para la vista de flota en tiempo real.
 - RLS: la Pi escribe con `service_role`; los usuarios autenticados solo leen.
+
+## Módulos 2 a 4
+
+- **GPIO** (`src/gpio`): cada pin tiene un dueño (`user`, `bypass` o reservado). Un pin del bypass no se puede
+  tocar desde la web ni desde la IA. En la Pi se usa un proceso Python con `lgpio` (preinstalado en Raspberry Pi OS,
+  sin compilar nada); si ese proceso muere, las líneas se liberan, los relés caen y el bypass queda en su estado seguro.
+  En PC se usa un backend simulado.
+- **Bypass** (`src/bypass`): máquina de estados `ups`, `transfiriendo_a_bypass`, `bypass`, `transfiriendo_a_ups`,
+  `bloqueado`, `deshabilitado`, evaluada cada 100 ms. Ver `docs/BYPASS.md`.
+- **IA** (`src/ai`): Messages API de Claude con uso de herramientas. El historial de la conversación vive en el
+  navegador; la Pi solo guarda las acciones pendientes (10 min de vigencia).
