@@ -41,6 +41,7 @@ export class Store {
     this.insOutbox = this.db.prepare('INSERT INTO outbox (kind, payload) VALUES (?, ?)');
     this.purge();
     this.purgeTimer = setInterval(() => this.purge(), 3600_000);
+    this.purgeTimer.unref?.();
   }
 
   saveReading(r) { this.insReading.run(flatten(r)); }
@@ -53,7 +54,7 @@ export class Store {
     const bucket = Math.max(1000, Math.floor((to - from) / points));
     const agg = Object.keys(METRICS).map((k) => (k === 'batt_pct' || k === 'runtime' ? `MIN(${k}) AS ${k}` : `ROUND(AVG(${k}),2) AS ${k}`)).join(', ');
     const rows = this.db.prepare(`
-      SELECT (ts / @bucket) * @bucket AS t, ${agg}, MAX(load) AS load_max, MIN(in_v) AS in_v_min, MAX(in_v) AS in_v_max
+      SELECT CAST(ts / @bucket AS INTEGER) * @bucket AS t, ${agg}, MAX(load) AS load_max, MIN(in_v) AS in_v_min, MAX(in_v) AS in_v_max
       FROM readings WHERE ts BETWEEN @from AND @to GROUP BY t ORDER BY t`).all({ from, to, bucket });
     return { bucket, rows };
   }

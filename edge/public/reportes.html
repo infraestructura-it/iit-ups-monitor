@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reportes · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1>Reportes y gráficas</h1>
+        <p id="sub" class="muted">Datos históricos de la base de datos de la Raspberry</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>IA</a><a href="reportes.html" aria-current="page"><b>5</b>Reportes</a><a href="seguridad.html"><b>6</b>Seguridad</a></nav>
+    <div class="top-right">
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel rep-controls" aria-label="Filtros del reporte">
+      <div class="row" style="justify-content:space-between">
+        <div class="seg" id="presets" role="group" aria-label="Periodo">
+          <button data-p="24h">Últimas 24 h</button>
+          <button data-p="today">Hoy</button>
+          <button data-p="yesterday">Ayer</button>
+          <button data-p="7d">7 días</button>
+          <button data-p="30d">30 días</button>
+        </div>
+      </div>
+      <div class="rep-row">
+        <label class="field">Desde<input type="datetime-local" id="from"></label>
+        <label class="field">Hasta<input type="datetime-local" id="to"></label>
+        <label class="field">Resolución
+          <select id="bucket">
+            <option value="auto">Automática</option>
+            <option value="0">Cada lectura</option>
+            <option value="60000">1 minuto</option>
+            <option value="300000">5 minutos</option>
+            <option value="900000">15 minutos</option>
+            <option value="3600000">1 hora</option>
+            <option value="86400000">1 día</option>
+          </select></label>
+      </div>
+      <div class="var-groups" id="vars"></div>
+      <div class="row">
+        <button class="btn primary" id="run">Generar gráficas</button>
+        <button class="btn ghost" id="xlsx" style="margin:0">Descargar Excel</button>
+        <a class="btn ghost" id="csv" style="margin:0" download>CSV</a>
+        <span class="muted" id="hint" style="font-size:.85rem"></span>
+      </div>
+    </section>
+
+    <section class="kpis" id="kpis" aria-label="Resumen del periodo"></section>
+
+    <section class="charts" id="charts" aria-label="Gráficas"></section>
+
+    <section aria-labelledby="h-out">
+      <h2 id="h-out" class="sec">Cortes de energía en el periodo</h2>
+      <div class="raw-wrap"><table class="tbl"><thead><tr><th>Inicio</th><th>Fin</th><th>Duración</th></tr></thead><tbody id="outages"></tbody></table></div>
+    </section>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/reportes.js"></script>
+</body>
+</html>

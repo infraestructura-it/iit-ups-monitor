@@ -1,4 +1,7 @@
 import { sparkline, LineChart } from './chart.js';
+import { ready, can } from './auth.js';
+const me = await ready;
+
 
 const $ = (s) => document.querySelector(s);
 const C = { grid: '#00d4ff', batt: '#a78bfa', ok: '#10b981', warn: '#f5a524', crit: '#ff4d6d', text: '#dbe4f0' };
@@ -42,7 +45,12 @@ const flat = (r) => ({
 const fmt = (v, d = 1) => (v == null || Number.isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d }));
 const fmtTime = (ts) => new Date(ts).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const api = (p, o) => fetch(p, o).then((r) => (r.ok ? r.json() : r.json().then((e) => Promise.reject(new Error(e.error || r.status)))));
+const api = (p, o) => fetch(p, o).then(async (r) => {
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && d.login) { location.replace('login.html?next=index.html'); return new Promise(() => {}); }
+  if (!r.ok) throw new Error(d.error || r.status);
+  return d;
+});
 
 // ---------- Tarjetas ----------
 function buildTiles() {
@@ -181,7 +189,7 @@ async function loadTrend() {
     <div><span>Batería mínima</span><b>${fmt(st.batt_pct_min, 0)} %</b></div>
     <div><span>Temperatura máx.</span><b>${fmt(st.temp_max)} °C</b></div>
     <div><span>Muestras</span><b>${fmt(st.samples, 0)}</b></div>`;
-  $('#csv').href = `/api/export.csv?from=${from}&to=${to}`;
+  $('#csv').href = `reportes.html?from=${from}&to=${to}`;
 }
 
 // ---------- Equipo y comandos ----------
@@ -204,14 +212,12 @@ async function loadDevice() {
   const labels = { test: 'Iniciar prueba de batería', testCancel: 'Cancelar prueba', beeperToggle: 'Silenciar o activar alarma sonora', beeperMute: 'Silenciar alarma sonora' };
   if (d.commands.length) {
     $('#cmd-box').hidden = false;
-    $('#cmd-key').value = localStorage.getItem('iit-ups-key') || '';
     $('#cmd-buttons').innerHTML = d.commands.map((c) => `<button class="btn danger" data-c="${c}">${labels[c] || c}</button>`).join('');
     $('#cmd-buttons').onclick = async (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (!confirm(`¿Enviar "${b.textContent}" a la UPS?`)) return;
-      const key = $('#cmd-key').value; localStorage.setItem('iit-ups-key', key);
       try {
-        await api('/api/command', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key }, body: JSON.stringify({ command: b.dataset.c }) });
+        await api('/api/command', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ command: b.dataset.c }) });
         $('#cmd-msg').textContent = `Comando enviado: ${b.textContent}`;
       } catch (err) { $('#cmd-msg').textContent = `No se envió: ${err.message}`; }
     };

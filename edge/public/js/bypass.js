@@ -1,4 +1,7 @@
 import { $, $$, api, connectWS, startClock, toast, eventItem, fmt, fmtTime } from './lib.js';
+import { ready, can } from './auth.js';
+const me = await ready;
+
 
 let st = null, gpioInfo = null;
 const TITLES = {

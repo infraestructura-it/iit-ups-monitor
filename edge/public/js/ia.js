@@ -1,4 +1,7 @@
 import { $, api, connectWS, startClock, toast, esc } from './lib.js';
+import { ready } from './auth.js';
+await ready;
+
 
 const STORE = 'iit-ups-chat';
 let history = JSON.parse(sessionStorage.getItem(STORE) || '[]');

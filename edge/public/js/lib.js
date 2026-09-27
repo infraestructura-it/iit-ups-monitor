@@ -5,19 +5,15 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&am
 export const fmt = (v, d = 1) => (v == null || Number.isNaN(v) ? '—' : Number(v).toLocaleString('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d }));
 export const fmtTime = (ts) => new Date(ts).toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-const KEY = 'iit-ups-key';
-export const getKey = () => localStorage.getItem(KEY) || '';
-
-// fetch JSON; si la acción exige clave y falla, la pide una vez y reintenta
-export async function api(path, { method = 'GET', body, retry = true } = {}) {
-  const headers = { 'content-type': 'application/json' };
-  if (method !== 'GET') headers['x-api-key'] = getKey();
-  const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+// fetch JSON con la sesión del navegador (cookie). 401 = iniciar sesión; 403 con mustChange = cambiar contraseña
+export async function api(path, { method = 'GET', body } = {}) {
+  const res = await fetch(path, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
   const data = await res.json().catch(() => ({}));
-  if (res.status === 401 && retry) {
-    const k = prompt('Clave de comandos (API_COMMAND_KEY)');
-    if (k) { localStorage.setItem(KEY, k); return api(path, { method, body, retry: false }); }
+  if (res.status === 401 && data.login) {
+    location.replace(`login.html?next=${encodeURIComponent(location.pathname.split('/').pop() + location.search)}`);
+    return new Promise(() => {});
   }
+  if (res.status === 403 && data.mustChange) { location.replace('seguridad.html#cuenta'); return new Promise(() => {}); }
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }

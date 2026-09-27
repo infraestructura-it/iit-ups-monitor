@@ -18,7 +18,7 @@
         <p id="sub" class="muted">Transfiere la carga a la red si la UPS deja de entregar energía</p>
       </div>
     </div>
-    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html" aria-current="page"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>Asistente IA</a></nav>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html" aria-current="page"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>IA</a><a href="reportes.html"><b>5</b>Reportes</a><a href="seguridad.html"><b>6</b>Seguridad</a></nav>
     <div class="top-right">
       <span id="link" class="link" data-state="wait"><i></i><span>Conectando</span></span>
       <time id="clock" class="mono muted"></time>
@@ -72,20 +72,20 @@
           El bypass está deshabilitado. Revisa el cableado según <code>docs/BYPASS.md</code>, ajusta los pines en
           <code>config/local.json</code> y pon <code>BYPASS_ENABLED=true</code> en el <code>.env</code>.
         </div>
-        <div class="row">
+        <div class="row op-only">
           <span class="muted">Modo</span>
           <div class="seg" id="mode" role="radiogroup" aria-label="Modo del bypass">
             <button data-m="auto" role="radio">Automático</button>
             <button data-m="manual" role="radio">Manual</button>
           </div>
         </div>
-        <div class="row">
+        <div class="row op-only">
           <button class="btn warn" id="to-bypass">Transferir a bypass</button>
           <button class="btn ghost" id="to-ups" style="margin:0">Volver a la UPS</button>
-          <button class="btn danger" id="reset" hidden>Restablecer bloqueo</button>
+          <button class="btn danger admin-only" id="reset" hidden>Restablecer bloqueo</button>
         </div>
-        <p class="muted" style="font-size:.85rem">En automático la transferencia ocurre sola. Las transferencias a mano requieren modo manual y la clave de comandos.</p>
-        <div id="sim" class="sim-box" hidden>
+        <p class="muted" style="font-size:.85rem">En automático la transferencia ocurre sola. Las transferencias a mano requieren modo manual y rol de operador. Restablecer un bloqueo requiere administrador.</p>
+        <div id="sim" class="sim-box op-only" hidden>
           <span class="badge sim" style="justify-self:start">Simulación: GPIO sin hardware</span>
           <div class="row">
             <button class="btn ghost" data-sim="ups:0" style="margin:0">Falla salida UPS</button>

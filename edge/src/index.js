@@ -13,6 +13,7 @@ import { CloudSync } from './cloud/supabase-sync.js';
 import { GpioService } from './gpio/gpio-service.js';
 import { BypassController } from './bypass/bypass-controller.js';
 import { Assistant } from './ai/assistant.js';
+import { Security } from './security/security.js';
 import path from 'node:path';
 import { log } from './util/log.js';
 
@@ -31,7 +32,8 @@ const gpio = new GpioService(cfg.gpio, path.dirname(cfg.storage.path));
 await gpio.init();
 const bypass = new BypassController(cfg.bypass, gpio, () => ({ reading: state.latest, commOk: state.commOk }));
 const assistant = new Assistant(cfg.ai, { cfg, state, store, alarms, driver, gpio, bypass });
-const api = createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant });
+const security = new Security(store.db, { legacyKey: cfg.api.commandKey || null });
+const api = createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant, security });
 
 gpio.on('change', (p) => api.broadcast('gpio', p));
 bypass.on('state', (s) => api.broadcast('bypass', s));

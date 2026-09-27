@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar · Monitor UPS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="auth">
+    <form class="panel" id="form" novalidate>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+        <div><h1 id="title">Monitor UPS</h1><p class="muted" id="device"></p></div>
+      </div>
+      <div id="setup-info" class="banner" hidden>
+        <b>Configuración inicial.</b> Crea el primer administrador. El código de instalación aparece en el registro
+        del servicio: <code>journalctl -u iit-ups-monitor | grep código</code> (o en la consola si lo ejecutas a mano).
+      </div>
+      <label class="field setup" hidden>Código de instalación<input id="token" autocomplete="off" spellcheck="false"></label>
+      <label class="field setup" hidden>Nombre<input id="name" autocomplete="name" placeholder="Ej.: Jairo Sepúlveda"></label>
+      <label class="field">Usuario<input id="user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="field">Contraseña<input id="pass" type="password" autocomplete="current-password" required></label>
+      <label class="field setup" hidden>Repite la contraseña<input id="pass2" type="password" autocomplete="new-password"></label>
+      <p class="muted setup" hidden style="font-size:.82rem">Mínimo 10 caracteres, con letras y números.</p>
+      <p class="msg-err" id="err" role="alert"></p>
+      <button class="btn primary" id="go">Ingresar</button>
+    </form>
+  </main>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

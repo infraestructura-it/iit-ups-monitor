@@ -73,5 +73,6 @@ systemctl enable --now iit-ups-monitor
 
 IP=$(hostname -I | awk '{print $1}')
 say "Listo. Dashboard: http://$IP:8080"
+echo "   Primer ingreso: journalctl -u iit-ups-monitor | grep -A1 'CONFIGURACIÓN INICIAL'"
 echo "   Configuración: sudo nano $APP_DIR/edge/.env   luego  sudo systemctl restart iit-ups-monitor"
 echo "   Logs:          journalctl -u iit-ups-monitor -f"

@@ -63,7 +63,10 @@ export class LineChart {
     const pad = { l: 52, r: 12, t: 12, b: 26 };
     const muted = css('--muted'), line = css('--line'), text = css('--text');
     ctx.font = `12px ${css('--mono')}`;
-    const all = this.series.flatMap((s) => s.data.map((d) => d[1]).filter((v) => v != null));
+    const all = this.series.flatMap((s) => [
+      ...s.data.map((d) => d[1]),
+      ...(s.band || []).flatMap((b) => [b[1], b[2]]),
+    ].filter((v) => v != null));
     if (!this.range) return;
     const [t0, t1] = this.range;
     if (!all.length) {
@@ -86,10 +89,23 @@ export class LineChart {
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     const span = t1 - t0, fmt = span > 2 * 86400_000
       ? { day: '2-digit', month: 'short' } : { hour: '2-digit', minute: '2-digit' };
-    for (let i = 0; i <= 5; i++) {
-      const t = t0 + (span * i) / 5;
-      ctx.textAlign = i === 0 ? 'left' : i === 5 ? 'right' : 'center';
+    const nt = Math.max(2, Math.min(5, Math.floor((w - pad.l - pad.r) / 120)));
+    for (let i = 0; i <= nt; i++) {
+      const t = t0 + (span * i) / nt;
+      ctx.textAlign = i === 0 ? 'left' : i === nt ? 'right' : 'center';
       ctx.fillStyle = muted; ctx.fillText(new Date(t).toLocaleString('es-CO', fmt), X(t), h - pad.b + 8);
+    }
+    // bandas mín/máx (debajo de las líneas)
+    for (const s of this.series) {
+      if (!s.band?.length) continue;
+      const pts = s.band.filter((b) => b[1] != null && b[2] != null);
+      if (pts.length < 2) continue;
+      ctx.beginPath();
+      pts.forEach((b, i) => (i ? ctx.lineTo(X(b[0]), Y(b[2])) : ctx.moveTo(X(b[0]), Y(b[2]))));
+      for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(X(pts[i][0]), Y(pts[i][1]));
+      ctx.closePath();
+      ctx.fillStyle = s.color + '2e';
+      ctx.fill();
     }
     // series
     for (const s of this.series) {
@@ -118,7 +134,10 @@ export class LineChart {
       const lines = [new Date(t).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'medium' })];
       for (const s of this.series) {
         const near = s.data.reduce((a, d) => (Math.abs(d[0] - t) < Math.abs(a[0] - t) ? d : a), s.data[0]);
-        if (near && near[1] != null) lines.push(`${s.label}: ${near[1]} ${this.unit}`);
+        if (near && near[1] != null) {
+          const b = s.band?.find((x) => x[0] === near[0]);
+          lines.push(`${s.label}: ${near[1]} ${this.unit}${b && b[1] != null ? `  (mín ${b[1]}, máx ${b[2]})` : ''}`);
+        }
       }
       const bw = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 20;
       const bx = this.hover + bw + 12 > w ? this.hover - bw - 8 : this.hover + 8;

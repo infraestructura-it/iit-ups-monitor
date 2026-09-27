@@ -1,4 +1,7 @@
 import { $, $$, api, connectWS, startClock, toast, esc } from './lib.js';
+import { ready, can } from './auth.js';
+const me = await ready;
+
 
 let data = null, selected = null;
 const POWER_CLASS = { '5V': 'pwr5', '3V3': 'pwr3', GND: 'gnd', ID_SD: 'id', ID_SC: 'id' };
@@ -63,7 +66,7 @@ function renderEditor() {
   }
   const isOut = p.mode === 'output', isIn = p.mode === 'input';
   ed.innerHTML = head + `
-    ${isOut ? `<div class="io-state"><button class="switch" id="sw" role="switch" aria-checked="${!!p.active}" aria-label="Activar salida"></button>
+    ${isOut ? `<div class="io-state"><button class="switch" id="sw" role="switch" aria-checked="${!!p.active}" aria-label="Activar salida" ${can(me, 'operator') ? '' : 'disabled'}></button>
       <div><b>${p.active ? 'Activa' : 'Inactiva'}</b><div class="muted" style="font-size:.8rem">nivel físico ${p.level} (${p.activeLow ? 'activo en bajo' : 'activo en alto'})</div></div></div>` : ''}
     ${isIn ? `<div class="io-state"><b style="color:${p.active ? 'var(--ok)' : 'var(--muted)'}">${p.active ? 'Activa' : 'Inactiva'}</b><span class="muted">nivel físico ${p.level}</span>
       ${data.simulated ? '<button class="btn ghost" id="simin" style="margin:0 0 0 auto">Simular cambio</button>' : ''}</div>` : ''}
@@ -81,7 +84,8 @@ function renderEditor() {
       </div>
     </div>
     <p class="muted" style="font-size:.82rem">La mayoría de módulos de relé chinos se activan en bajo. Las entradas de optoacoplador con pull-up también.</p>
-    <div class="row"><button class="btn primary" id="save">Guardar pin</button></div>`;
+    <div class="row admin-only"><button class="btn primary" id="save">Guardar pin</button></div>
+    ${can(me, 'admin') ? '' : '<p class="muted" style="font-size:.82rem">Solo un administrador puede cambiar la configuración de los pines.</p>'}`;
 
   $('#save').onclick = async () => {
     try {
