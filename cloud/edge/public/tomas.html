@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tomas · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1>Panel de tomas</h1>
+        <p id="sub" class="muted">15 NEMA 5-15R y 2 NEMA L5-30R alimentadas por la UPS</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>IA</a><a href="reportes.html"><b>5</b>Reportes</a><a href="seguridad.html"><b>6</b>Seguridad</a><a href="tomas.html" aria-current="page"><b>7</b>Tomas</a></nav>
+    <div class="top-right">
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis" id="kpis" aria-label="Resumen del panel"></section>
+
+    <div class="pdu-layout">
+      <section class="pdu" aria-label="Panel de tomas">
+        <div class="pdu-head">
+          <span class="pdu-brand">IIT PDU  120 V</span>
+          <span id="meter-note" class="badge sim">Medición por toma simulada</span>
+        </div>
+        <div class="pdu-grid" id="grid515"></div>
+        <div class="pdu-sep"><span>NEMA L5-30R, 30 A</span></div>
+        <div class="pdu-grid big" id="gridL530"></div>
+        <div class="pdu-legend">
+          <span><i class="lg on"></i>Encendida</span><span><i class="lg off"></i>Apagada</span>
+          <span><i class="lg shed"></i>Desconectada por batería</span><span><i class="lg cyc"></i>Reiniciando</span>
+          <span><i class="lg alarm"></i>Sobrecorriente</span>
+          <span><b class="prio critica"></b>Crítica</span><span><b class="prio normal"></b>Normal</span><span><b class="prio no_critica"></b>No crítica</span>
+        </div>
+      </section>
+
+      <aside class="panel editor" id="detail" aria-live="polite">
+        <p class="muted">Toca una toma para encenderla, apagarla o reiniciar el equipo conectado.</p>
+      </aside>
+    </div>
+
+    <div class="row op-only">
+      <button class="btn ghost" id="all-on" style="margin:0">Encender todas (escalonado)</button>
+      <button class="btn warn" id="off-nc">Apagar no críticas</button>
+    </div>
+
+    <div class="sec-grid">
+      <section class="panel" aria-labelledby="h-pol" style="display:grid;gap:14px;align-content:start">
+        <h2 id="h-pol" class="sec" style="margin:0">Desconexión de carga en batería</h2>
+        <p class="muted" style="font-size:.86rem">Durante un corte de energía apaga primero las tomas no críticas y, si la batería sigue bajando, las normales. Las críticas nunca se apagan solas. Al volver la red estable, restaura en forma escalonada solo lo que se desconectó automáticamente.</p>
+        <form id="pol" style="display:grid;gap:12px">
+          <label class="check"><input type="checkbox" id="p-en"> Desconexión automática habilitada</label>
+          <div class="form-grid">
+            <label class="field">No críticas: apagar tras (s) en batería<input type="number" id="p-nc" min="0" max="3600"></label>
+            <label class="field">Normales: apagar si batería ≤ (%)<input type="number" id="p-pct" min="0" max="100"></label>
+            <label class="field">Restaurar tras red estable (s)<input type="number" id="p-rest" min="5" max="3600"></label>
+            <label class="field">Reinicio: tiempo apagada (s)<input type="number" id="p-cyc" min="2" max="300"></label>
+            <label class="field">Escalonamiento al encender (ms)<input type="number" id="p-seq" min="0" max="30000"></label>
+          </div>
+          <div class="row admin-only"><button class="btn primary">Guardar política</button></div>
+        </form>
+      </section>
+      <section aria-labelledby="h-ev">
+        <h2 id="h-ev" class="sec">Historial de las tomas</h2>
+        <ol id="events" class="events"></ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/tomas.js"></script>
+</body>
+</html>

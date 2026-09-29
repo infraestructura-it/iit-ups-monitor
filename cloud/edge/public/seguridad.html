@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seguridad · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+      <div>
+        <h1>Seguridad</h1>
+        <p id="sub" class="muted">Usuarios, accesos, políticas y auditoría</p>
+      </div>
+    </div>
+    <nav class="menu" aria-label="Módulos"><a href="index.html"><b>1</b>UPS</a><a href="bypass.html"><b>2</b>Bypass</a><a href="gpio.html"><b>3</b>GPIO</a><a href="ia.html"><b>4</b>IA</a><a href="reportes.html"><b>5</b>Reportes</a><a href="seguridad.html" aria-current="page"><b>6</b>Seguridad</a><a href="tomas.html"><b>7</b>Tomas</a></nav>
+    <div class="top-right">
+      <time id="clock" class="mono muted"></time>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel review admin-only" aria-labelledby="h-rev">
+      <div class="score" id="score"></div>
+      <div><h2 id="h-rev" class="sec">Revisión de seguridad</h2><ul class="checks" id="checks"></ul></div>
+    </section>
+
+    <div class="sec-grid">
+      <section class="panel" id="cuenta" aria-labelledby="h-me" style="display:grid;gap:14px;align-content:start">
+        <h2 id="h-me" class="sec" style="margin:0">Mi cuenta</h2>
+        <div id="must" class="banner" hidden>Estás usando una contraseña temporal. Cámbiala para continuar.</div>
+        <dl class="kv" id="me"></dl>
+        <form id="pw" class="form-grid" autocomplete="on">
+          <input type="text" autocomplete="username" id="pw-user" hidden>
+          <label class="field">Contraseña actual<input type="password" id="pw-cur" autocomplete="current-password" required></label>
+          <label class="field">Nueva contraseña<input type="password" id="pw-new" autocomplete="new-password" required></label>
+          <label class="field">Repítela<input type="password" id="pw-new2" autocomplete="new-password" required></label>
+          <button class="btn primary">Cambiar contraseña</button>
+        </form>
+      </section>
+
+      <section class="panel admin-only" aria-labelledby="h-pol" style="display:grid;gap:14px;align-content:start">
+        <h2 id="h-pol" class="sec" style="margin:0">Políticas de acceso</h2>
+        <form id="pol" style="display:grid;gap:14px">
+          <label class="check"><input type="checkbox" id="p-login"> Exigir inicio de sesión para ver el panel</label>
+          <div class="form-grid">
+            <label class="field">Duración de sesión (h)<input type="number" id="p-hours" min="1" max="720"></label>
+            <label class="field">Intentos antes de bloquear<input type="number" id="p-att" min="3" max="50"></label>
+            <label class="field">Minutos de bloqueo<input type="number" id="p-lock" min="1" max="1440"></label>
+          </div>
+          <label class="field">Redes permitidas (una por línea, formato CIDR). Vacío = cualquier red
+            <textarea id="p-nets" placeholder="192.168.1.0/24&#10;10.147.19.0/24"></textarea></label>
+          <label class="field">Aplicar redes permitidas a
+            <select id="p-scope"><option value="actions">Solo acciones (control, GPIO, bypass, IA)</option><option value="all">Todo el acceso</option></select></label>
+          <div class="form-grid">
+            <label class="check"><input type="checkbox" id="p-ai"> Asistente IA habilitado</label>
+            <label class="field">Rol mínimo para la IA<select id="p-airole"></select></label>
+            <label class="field">Consultas IA por hora<input type="number" id="p-aimax" min="1" max="1000"></label>
+          </div>
+          <p class="muted" style="font-size:.82rem" id="p-ip"></p>
+          <div class="row"><button class="btn primary">Guardar políticas</button></div>
+        </form>
+      </section>
+    </div>
+
+    <section class="panel admin-only" aria-labelledby="h-users" style="display:grid;gap:14px">
+      <h2 id="h-users" class="sec" style="margin:0">Usuarios</h2>
+      <div class="raw-wrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th><th>Último acceso</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+      <form id="nu" class="form-grid">
+        <label class="field">Usuario<input id="nu-user" autocomplete="off" required></label>
+        <label class="field">Nombre<input id="nu-name"></label>
+        <label class="field">Rol<select id="nu-role"></select></label>
+        <label class="field">Contraseña temporal<input id="nu-pass" type="text" autocomplete="off" required></label>
+        <button class="btn primary">Crear usuario</button>
+      </form>
+      <p class="muted" style="font-size:.82rem"><b>Lectura:</b> ve todo y descarga reportes. <b>Operador:</b> además acciona GPIO, opera el bypass, envía comandos a la UPS y usa la IA. <b>Administrador:</b> además configura pines, restablece bloqueos del bypass y administra la seguridad. Los usuarios nuevos deben cambiar la contraseña temporal al entrar.</p>
+    </section>
+
+    <section class="panel admin-only" aria-labelledby="h-tok" style="display:grid;gap:14px">
+      <h2 id="h-tok" class="sec" style="margin:0">Tokens de API</h2>
+      <p class="muted" style="font-size:.85rem">Para integraciones (Home Assistant, Node-RED, scripts). Se envían en la cabecera <code>x-api-key</code>. El token se muestra una sola vez.</p>
+      <div id="tok-new" class="token-once" hidden></div>
+      <div class="raw-wrap"><table class="tbl"><thead><tr><th>Nombre</th><th>Rol</th><th>Creado</th><th>Último uso</th><th>Estado</th><th></th></tr></thead><tbody id="tokens"></tbody></table></div>
+      <form id="nt" class="form-grid">
+        <label class="field">Nombre<input id="nt-name" placeholder="Ej.: Home Assistant" required></label>
+        <label class="field">Rol<select id="nt-role"></select></label>
+        <button class="btn primary">Crear token</button>
+      </form>
+    </section>
+
+    <section class="admin-only" aria-labelledby="h-aud">
+      <div class="raw-head">
+        <h2 id="h-aud" class="sec">Auditoría</h2>
+        <select id="aud-f" class="mini" aria-label="Filtrar auditoría">
+          <option value="">Todo</option><option value="login">Inicios de sesión</option><option value="user">Usuarios</option>
+          <option value="settings">Políticas</option><option value="token">Tokens</option><option value="bypass">Bypass</option>
+          <option value="gpio">GPIO</option><option value="report">Reportes</option><option value="ai">IA</option><option value="command">Comandos UPS</option>
+        </select>
+      </div>
+      <div class="raw-wrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Quién</th><th>IP</th><th>Acción</th><th>Detalle</th></tr></thead><tbody id="audit"></tbody></table></div>
+    </section>
+  </main>
+
+  <footer class="muted">Infraestructura-IT. Servicio local en Raspberry Pi 5.</footer>
+  <script type="module" src="js/seguridad.js"></script>
+</body>
+</html>

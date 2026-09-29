@@ -1,0 +1,9 @@
+# Enlace fijo /dev/ups-serial para el adaptador USB-RS232 (evita que cambie entre ttyUSB0/ttyUSB1)
+# Adaptadores comunes: FTDI FT232, Prolific PL2303, WCH CH340/CH341, Silicon Labs CP210x
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="23a3", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"
+# Si usas el UART del GPIO (MAX3232), descomenta:
+# KERNEL=="ttyAMA0", SYMLINK+="ups-serial", GROUP="dialout", MODE="0660"

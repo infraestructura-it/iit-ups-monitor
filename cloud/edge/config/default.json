@@ -1,0 +1,114 @@
+{
+  "device": {
+    "id": "ups-01",
+    "name": "UPS principal",
+    "site": "Sede principal"
+  },
+  "driver": {
+    "type": "megatec",
+    "pollIntervalMs": 2000,
+    "megatec": {
+      "path": "/dev/ups-serial",
+      "baudRate": 2400,
+      "timeoutMs": 1500
+    },
+    "nut": {
+      "host": "127.0.0.1",
+      "port": 3493,
+      "ups": "ups",
+      "username": "monitor",
+      "password": "",
+      "timeoutMs": 3000
+    },
+    "nameplate": {
+      "ratedVA": null,
+      "powerFactor": 0.8,
+      "batteryCells": null,
+      "cellEmptyV": 1.75,
+      "cellFullV": 2.25
+    }
+  },
+  "storage": {
+    "path": "./data/ups.db",
+    "retentionDays": 30
+  },
+  "alarms": {
+    "debounce": 2,
+    "commLostAfterMs": 10000,
+    "inputVoltage": {
+      "min": 102,
+      "max": 132
+    },
+    "inputFrequency": {
+      "min": 58.8,
+      "max": 61.2
+    },
+    "loadPct": {
+      "warn": 80,
+      "crit": 95
+    },
+    "batteryPct": {
+      "warn": 50,
+      "crit": 20
+    },
+    "temperatureC": {
+      "warn": 40,
+      "crit": 50
+    }
+  },
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "commandKey": ""
+  },
+  "cloud": {
+    "enabled": false,
+    "url": "",
+    "serviceKey": "",
+    "sampleEverySec": 30,
+    "pushEverySec": 30,
+    "maxOutbox": 50000
+  },
+  "gpio": {
+    "backend": "auto",
+    "pollMs": 50,
+    "reserved": []
+  },
+  "bypass": {
+    "enabled": false,
+    "mode": "auto",
+    "pins": {
+      "relayUps": 5,
+      "relayBypass": 6,
+      "senseUpsOut": 16,
+      "senseGrid": 20,
+      "feedbackUps": null,
+      "feedbackBypass": null
+    },
+    "relayActiveLow": true,
+    "senseActiveLow": true,
+    "sensePull": "up",
+    "tickMs": 100,
+    "confirmMs": 500,
+    "deadTimeMs": 300,
+    "returnDelaySec": 60,
+    "autoReturn": true,
+    "maxTransfers": 3,
+    "windowMin": 10,
+    "useUpsData": true,
+    "outputMinV": 90,
+    "gridMinV": 90
+  },
+  "ai": {
+    "apiKey": "",
+    "model": "claude-sonnet-5",
+    "maxTokens": 1500,
+    "maxToolRounds": 6,
+    "maxRequestsPerHour": 60
+  },
+  "outlets": {
+    "relayActiveLow": true,
+    "tickMs": 1000,
+    "powerFactor": 0.9
+  }
+}

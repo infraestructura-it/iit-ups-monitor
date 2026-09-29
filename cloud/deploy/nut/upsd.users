@@ -1,0 +1,5 @@
+# /etc/nut/upsd.users  (cambia la contraseña y ponla también en NUT_PASSWORD del .env)
+[monitor]
+  password = CAMBIAR_ESTA_CLAVE
+  instcmds = test.battery.start.quick test.battery.stop beeper.toggle beeper.mute
+  upsmon primary

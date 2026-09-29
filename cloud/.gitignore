@@ -1,0 +1,12 @@
+node_modules/
+edge/data/
+*.db
+*.db-wal
+*.db-shm
+.env
+edge/config/local.json
+.DS_Store
+Thumbs.db
+.lgd-nfy*
+__pycache__/
+*.pyc

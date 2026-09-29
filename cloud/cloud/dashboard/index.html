@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UPS en la nube · Infraestructura-IT</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cloud.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <form id="login" class="login" hidden>
+    <h1>UPS en la nube</h1>
+    <p class="muted">Ingresa con tu cuenta de Infraestructura-IT.</p>
+    <input id="email" type="email" placeholder="Correo" autocomplete="username" required>
+    <input id="pass" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+    <button type="submit">Ingresar</button>
+    <p id="login-msg" class="muted" aria-live="polite"></p>
+  </form>
+
+  <div id="app" hidden>
+    <header class="top">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 6 18h8l-2 12 12-16h-8z"/></svg>
+        <div><h1>UPS monitoreadas</h1><p class="muted" id="fleet-sub">Cargando equipos…</p></div>
+      </div>
+      <button class="logout" id="logout">Cerrar sesión</button>
+    </header>
+    <main>
+      <section class="fleet" id="fleet" aria-label="Equipos"></section>
+      <section class="detail" id="detail" hidden>
+        <div class="trend">
+          <div class="trend-head">
+            <h2 class="sec" id="d-title">Equipo</h2>
+            <div class="seg" id="ranges">
+              <button data-r="86400000" aria-selected="true">24 h</button>
+              <button data-r="604800000">7 días</button>
+              <button data-r="2592000000">30 días</button>
+            </div>
+          </div>
+          <div class="seg groups" id="groups"></div>
+          <div class="chart-wrap"><canvas id="chart"></canvas></div>
+        </div>
+        <section>
+          <h2 class="sec">Eventos del equipo</h2>
+          <ol id="events" class="events"></ol>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

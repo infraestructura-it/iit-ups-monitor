@@ -1,0 +1,24 @@
+{
+  "name": "iit-ups-monitor-edge",
+  "version": "1.0.0",
+  "description": "Capa local (Raspberry Pi 5): adquisición USB/RS232, almacenamiento, alarmas, API y dashboard web de la UPS",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/index.js --sim",
+    "sim": "node --disable-warning=ExperimentalWarning src/index.js --sim",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "author": "Infraestructura-IT",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "serialport": "^12.0.0",
+    "ws": "^8.18.0"
+  }
+}
