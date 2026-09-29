@@ -1,6 +1,6 @@
 # IIT UPS Monitor
 
-Monitoreo y control web de UPS con **Raspberry Pi 5**. Arquitectura por capas, todo web, en seis fichas:
+Monitoreo y control web de UPS con **Raspberry Pi 5**. Arquitectura por capas, todo web, en siete fichas:
 
 | Módulo | Menú | Qué hace |
 |---|---|---|
@@ -10,6 +10,7 @@ Monitoreo y control web de UPS con **Raspberry Pi 5**. Arquitectura por capas, t
 | 4 | **IA** | Claude consulta los datos reales y responde en lenguaje natural. Puede proponer acciones GPIO que tú confirmas |
 | 5 | **Reportes** | Gráficas históricas por variable (promedio con banda mín/máx), cortes de energía, energía kWh y descarga en Excel |
 | 6 | **Seguridad** | Usuarios con roles, sesiones, tokens de API, redes permitidas, bloqueo por intentos y auditoría |
+| 7 | **Tomas** | Panel PDU con 15 NEMA 5-15R y 2 NEMA L5-30R: encendido, reinicio remoto, encendido escalonado y desconexión de carga en batería. Ver [docs/TOMAS.md](docs/TOMAS.md) |
 
 ## Primer ingreso
 
@@ -24,8 +25,8 @@ Abre el panel, usa ese código y crea el primer administrador. En tu PC (`npm ru
 | Rol | Puede |
 |---|---|
 | Lectura | Ver todo y descargar reportes |
-| Operador | Además: accionar GPIO, operar el bypass, comandos a la UPS, usar la IA |
-| Administrador | Además: configurar pines, restablecer bloqueos del bypass, administrar usuarios, tokens y políticas |
+| Operador | Además: accionar GPIO y tomas, operar el bypass, comandos a la UPS, usar la IA |
+| Administrador | Además: configurar pines y tomas, restablecer bloqueos del bypass, administrar usuarios, tokens y políticas |
 
 Infraestructura-IT, Bogotá.
 
@@ -121,11 +122,15 @@ Para cambiarlos sin tocar el repo crea `edge/config/local.json` con solo lo que 
 | PUT | `/api/gpio/:gpio` | Configura un pin `{mode, name, activeLow, pull, persist}` (Administrador) |
 | POST | `/api/gpio/:gpio/set` | `{active}` activa o desactiva una salida (Operador) |
 | GET / POST | `/api/bypass` | Estado / `{action: mode, transfer, reset}` (Operador; `reset` Administrador) |
+| GET | `/api/outlets` | Estado de las 17 tomas, totales y política |
+| POST | `/api/outlets/:id` | `{action: on, off, cycle}` (Operador) |
+| POST | `/api/outlets/bulk` | `{action: allOn, offNonCritical}` (Operador) |
+| PUT | `/api/outlets/:id`, `/api/outlets/policy` | Nombre, prioridad, GPIO, carga simulada / política (Administrador) |
 | GET / POST | `/api/ai`, `/api/ai/chat` | Estado del asistente / conversación `{messages}` |
 | POST | `/api/ai/confirm` | `{id, approve}` confirma una acción propuesta por la IA (Operador) |
 
 Las integraciones (Home Assistant, Node-RED, scripts) usan un **token de API** en la cabecera `x-api-key`, con el rol que se le asigne al crearlo.
-| WS | `/ws` | `reading`, `event`, `alarms`, `comm`, `gpio`, `bypass` en vivo |
+| WS | `/ws` | `reading`, `event`, `alarms`, `comm`, `gpio`, `bypass`, `outlets` en vivo |
 
 ## Asistente IA
 

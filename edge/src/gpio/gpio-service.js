@@ -97,7 +97,8 @@ export class GpioService extends EventEmitter {
     if (!byGpio.has(gpio)) throw new Error(`GPIO${gpio} no existe en el conector de 40 pines`);
     if (this.reserved.has(gpio)) throw new Error(`GPIO${gpio} está reservado por el sistema`);
     const p = this.pins.get(gpio);
-    if (p && p.owner !== owner) throw new Error(`GPIO${gpio} está en uso por ${p.owner === 'bypass' ? 'el bypass' : p.owner}`);
+    const OWN = { bypass: 'el bypass', tomas: 'las tomas (ficha 7)', user: 'el usuario' };
+    if (p && p.owner !== owner) throw new Error(`GPIO${gpio} está en uso por ${OWN[p.owner] || p.owner}`);
   }
 
   // --- API para el usuario (web / IA) ---
@@ -134,6 +135,14 @@ export class GpioService extends EventEmitter {
     }
     await this.#apply(gpio, { ...spec, owner, persist: false });
     this.#save();
+  }
+
+  async release(gpio, owner) {
+    const p = this.pins.get(gpio);
+    if (!p || p.owner !== owner) return;
+    await this.backend.free(gpio);
+    this.pins.delete(gpio);
+    this.emit('change', this.describe(gpio));
   }
 
   simulateInput(gpio, active) {

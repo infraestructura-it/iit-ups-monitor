@@ -28,7 +28,10 @@ export class SimulatorDriver {
     const noise = (a) => (Math.random() - 0.5) * a;
     const slow = Math.sin(Date.now() / 60000);
 
-    const load = overload ? 102 + noise(4) : 38 + 6 * slow + noise(3);
+    // Si el panel de tomas (ficha 7) está activo, la carga real es la suma de sus tomas
+    const ext = this.loadProvider?.();
+    const base = ext != null ? (ext / this.nameplate.powerFactor / this.nameplate.ratedVA) * 100 : 38 + 6 * slow + noise(3);
+    const load = overload ? base + 65 + noise(4) : base;
     const onBatt = blackout || testing;
     this.batt = onBatt ? Math.max(5, this.batt - 0.9) : Math.min(100, this.batt + 0.35);
 

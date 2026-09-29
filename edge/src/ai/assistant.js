@@ -46,6 +46,11 @@ const TOOLS = [
     input_schema: { type: 'object', properties: {} },
   },
   {
+    name: 'estado_tomas',
+    description: 'Panel de tomas de la UPS (15 NEMA 5-15R y 2 NEMA L5-30R): estado, prioridad, potencia y corriente por toma (medición simulada), totales y política de desconexión de carga en batería. Solo lectura.',
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
     name: 'proponer_salida_gpio',
     description: 'Propone encender o apagar una salida GPIO configurada por el usuario (no las del bypass). NO la ejecuta: el operador debe confirmarla en pantalla. Úsala solo cuando el usuario pida accionar algo.',
     input_schema: {
@@ -85,6 +90,8 @@ Reglas:
 - Responde en español, claro y breve. Usa números concretos obtenidos con las herramientas; nunca inventes datos.
 - Si un valor viene marcado como estimado (lista "estimated"), acláralo.
 - Para diagnósticos, consulta primero las herramientas necesarias (estado, estadísticas, eventos, historial).
+- El bypass y las tomas son de solo lectura para ti; se operan desde sus fichas.
+- La potencia y corriente por toma son simuladas (no hay medidor por toma); dilo si las usas.
 - El bypass es de solo lectura para ti. Si piden transferir, explica que se hace desde el menú Bypass.
 - Para accionar una salida GPIO usa proponer_salida_gpio; queda pendiente hasta que el operador confirme. No digas que ya se ejecutó.
 - En temas de trabajo eléctrico, recuerda las medidas de seguridad (desenergizar, bloqueo y etiquetado, personal calificado).`;
@@ -111,6 +118,7 @@ Reglas:
         return store.events({ from: now - hours(input.horas), to: now, limit: Math.min(input.limite || 50, 200) })
           .map((e) => ({ fecha: new Date(e.ts).toLocaleString('es-CO', { timeZone: 'America/Bogota' }), codigo: e.code, severidad: e.severity, estado: e.state, mensaje: e.message, valor: e.value }));
       case 'estado_bypass': return bypass.status();
+      case 'estado_tomas': return this.ctx.outlets ? this.ctx.outlets.status() : { error: 'Panel de tomas no disponible' };
       case 'estado_gpio': {
         const l = gpio.list();
         return { resumen: l.summary, simulado: l.simulated, pines: l.pins.filter((p) => p.mode !== 'free') };

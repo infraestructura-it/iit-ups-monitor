@@ -351,3 +351,51 @@ body:not([data-role="admin"]) .admin-only { display: none !important; }
 .field textarea { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; color: var(--text); font-family: var(--mono); font-size: .85rem; min-height: 70px; }
 .banner { border: 1px solid #f5a52488; background: #f5a52412; border-radius: var(--r-sm); padding: 12px 14px; }
 @media (max-width: 900px) { .sec-grid, .review { grid-template-columns: 1fr; } }
+
+/* ================= Tomas (PDU) ================= */
+.pdu-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+.pdu { background: linear-gradient(180deg, #151b24, #0e1319); border: 1px solid #262f3d; border-radius: var(--r-lg); padding: 16px 18px 14px;
+  box-shadow: inset 0 1px 0 #ffffff0d, 0 10px 30px #0006; display: grid; gap: 14px; }
+.pdu-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pdu-brand { font-family: var(--mono); font-size: .78rem; letter-spacing: .12em; color: #8391a7; }
+.pdu-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+#cycle { white-space: nowrap; }
+.pdu-grid.big { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 560px; }
+.pdu-sep { display: flex; align-items: center; gap: 10px; color: var(--muted); font-family: var(--mono); font-size: .76rem; }
+.pdu-sep::before, .pdu-sep::after { content: ''; flex: 1; height: 1px; background: #262f3d; }
+.outlet { all: unset; box-sizing: border-box; cursor: pointer; display: grid; justify-items: center; gap: 6px; padding: 10px 8px 9px;
+  background: #0b1016; border: 1px solid #222b38; border-radius: 10px; transition: border-color .2s, box-shadow .2s, opacity .2s; min-width: 0; }
+.outlet:hover { border-color: #3a4658; }
+.outlet:focus-visible { outline: 2px solid var(--grid); outline-offset: 2px; }
+.outlet.sel { border-color: var(--grid); box-shadow: 0 0 0 1px var(--grid); }
+.o-top { width: 100%; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: .8rem; }
+.o-name { font-size: .8rem; text-align: center; line-height: 1.25; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.o-state { font-family: var(--mono); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.face { width: 54px; height: auto; }
+.pdu-grid.big .face { width: 78px; }
+.face .plate { fill: #e9e4d8; stroke: #b9b2a3; stroke-width: 2; transition: fill .3s; }
+.face .ring { fill: none; stroke: #b9b2a3; stroke-width: 1.5; }
+.face .slot { fill: #1a1d22; }
+.face .arc { fill: none; stroke: #1a1d22; stroke-width: 5.5; stroke-linecap: round; }
+.outlet.on .face { filter: drop-shadow(0 0 6px #10b98199); }
+.outlet.on .o-state { color: var(--ok); }
+.outlet.off { opacity: .55; }
+.outlet.off .face .plate { fill: #6b6a66; stroke: #4a4944; }
+.outlet.shed { opacity: 1; border-color: #f5a52488; border-style: dashed; }
+.outlet.shed .o-state { color: var(--warn); }
+.outlet.cyc { opacity: 1; animation: cyc 1s ease-in-out infinite; }
+.outlet.cyc .o-state { color: var(--grid); }
+@keyframes cyc { 50% { border-color: var(--grid); box-shadow: 0 0 12px #00d4ff55; } }
+.outlet.alarm { border-color: var(--crit); }
+.outlet.alarm .o-state { color: var(--crit); }
+.prio { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.prio.critica { background: var(--crit); } .prio.normal { background: var(--grid); } .prio.no_critica { background: #6f7d92; }
+.pdu-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .78rem; color: var(--muted); }
+.pdu-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg { width: 14px; height: 14px; border-radius: 4px; border: 1px solid #222b38; display: inline-block; }
+.lg.on { background: #e9e4d8; box-shadow: 0 0 6px #10b981; } .lg.off { background: #6b6a66; opacity: .6; }
+.lg.shed { border: 1px dashed var(--warn); } .lg.cyc { border-color: var(--grid); box-shadow: 0 0 6px #00d4ff; } .lg.alarm { border-color: var(--crit); }
+.pdu-legend b.prio { margin-left: 4px; }
+@media (max-width: 1100px) { .pdu-layout { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .pdu-grid { grid-template-columns: repeat(3, 1fr); } .face { width: 42px; } .o-state { font-size: .66rem; } }
+@media (prefers-reduced-motion: reduce) { .outlet.cyc { animation: none; border-color: var(--grid); } }

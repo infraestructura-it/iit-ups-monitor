@@ -8,7 +8,7 @@ import { Security, ROLES, ROLE_TXT, sessionCookie, clearCookie, ipAllowed, norma
 import { buildReport } from '../reports/report.js';
 import { writeExcel, validateExport, excelFilename } from '../reports/excel.js';
 
-export function createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant, security }) {
+export function createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant, security, outlets }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 'loopback'); // Cloudflare Tunnel local: respeta X-Forwarded-*
@@ -176,6 +176,32 @@ export function createServer({ cfg, store, driver, alarms, state, gpio, bypass, 
     return r;
   }));
 
+  // ================= Tomas (ficha 7) =================
+  app.get('/api/outlets', need('read'), (_req, res) => res.json(outlets.status()));
+  app.post('/api/outlets/bulk', need('outlets.operate'), wrap(async (req) => {
+    const r = await outlets.bulk(req.body?.action, req.user?.name);
+    security.audit(req.actor, req.ip, 'outlets.bulk', req.body?.action);
+    return r;
+  }));
+  app.put('/api/outlets/policy', need('outlets.configure'), wrap((req) => {
+    const p = outlets.setPolicy(req.body || {});
+    security.audit(req.actor, req.ip, 'outlets.policy', JSON.stringify(req.body));
+    return p;
+  }));
+  app.post('/api/outlets/:id', need('outlets.operate'), wrap(async (req) => {
+    const { action } = req.body || {};
+    const who = req.user?.name;
+    security.audit(req.actor, req.ip, `outlets.${action}`, req.params.id);
+    if (action === 'on' || action === 'off') return outlets.setOutlet(req.params.id, action === 'on', who);
+    if (action === 'cycle') { outlets.cycle(req.params.id, who).catch(() => {}); return { ok: true, cycling: true }; }
+    throw new Error('Acción inválida (on, off o cycle)');
+  }));
+  app.put('/api/outlets/:id', need('outlets.configure'), wrap(async (req) => {
+    const r = await outlets.configure(req.params.id, req.body || {});
+    security.audit(req.actor, req.ip, 'outlets.config', `${req.params.id}: ${JSON.stringify(req.body)}`);
+    return r;
+  }));
+
   // ================= IA =================
   const aiAllowed = (req) => {
     const s = security.settings();
@@ -252,7 +278,7 @@ export function createServer({ cfg, store, driver, alarms, state, gpio, bypass, 
 
   return {
     broadcast,
-    listen: () => new Promise((r) => server.listen(cfg.api.port, cfg.api.host, r)),
+    listen: () => new Promise((resolve, reject) => { server.once('error', reject); wss.once('error', () => {}); server.listen(cfg.api.port, cfg.api.host, resolve); }),
     close: () => new Promise((r) => { wss.close(); server.close(() => r()); }),
   };
 }

@@ -8,7 +8,7 @@ const POWER_CLASS = { '5V': 'pwr5', '3V3': 'pwr3', GND: 'gnd', ID_SD: 'id', ID_S
 const MODE_TXT = { output: 'Salida', input: 'Entrada', free: 'Libre', reserved: 'Reservado' };
 
 function pinClass(p) {
-  if (p.owner === 'bypass') return `bypass${p.active ? ' on' : ''}`;
+  if (p.owner === 'bypass' || p.owner === 'tomas') return `bypass${p.active ? ' on' : ''}`;
   if (p.mode === 'output' || p.mode === 'input') return `${p.mode}${p.active ? ' on' : ''}`;
   return p.mode;
 }
@@ -49,7 +49,7 @@ function renderUsed() {
   $('#used').innerHTML = used.length ? used.map((p) => `<tr data-g="${p.gpio}">
     <td class="mono">GPIO${p.gpio}</td><td class="mono">${p.pin}</td><td>${esc(p.name)}</td><td>${MODE_TXT[p.mode]}</td>
     <td>${p.active ? '<span style="color:var(--ok)">Activo</span>' : '<span class="muted">Inactivo</span>'}</td>
-    <td>${p.owner === 'bypass' ? 'Bypass' : 'Usuario'}</td></tr>`).join('')
+    <td>${{ bypass: 'Bypass', tomas: 'Tomas', user: 'Usuario' }[p.owner] || '—'}</td></tr>`).join('')
     : '<tr><td colspan="6" class="muted">Ningún pin configurado. Elige uno en el conector.</td></tr>';
 }
 
@@ -59,8 +59,10 @@ function renderEditor() {
   if (!p) { ed.innerHTML = '<p class="muted">Toca un pin del conector para configurarlo como salida o entrada.</p>'; return; }
   const head = `<div class="row" style="justify-content:space-between"><h3>GPIO${p.gpio} <span class="muted" style="font-size:.9rem">pin físico ${p.pin}</span></h3>
     ${p.alt ? `<span class="badge">${esc(p.alt)}</span>` : ''}</div>`;
-  if (p.owner === 'bypass' || p.mode === 'reserved') {
-    ed.innerHTML = head + `<p>${p.owner === 'bypass' ? `Controlado por el bypass como <b>${esc(p.name)}</b>. Se configura en <code>config/local.json</code> para evitar cambios accidentales.` : 'Reservado por el sistema.'}</p>
+  if (p.owner === 'bypass' || p.owner === 'tomas' || p.mode === 'reserved') {
+    const why = p.owner === 'bypass' ? `Controlado por el bypass como <b>${esc(p.name)}</b>. Se configura en <code>config/local.json</code> para evitar cambios accidentales.`
+      : p.owner === 'tomas' ? `Relé de <b>${esc(p.name)}</b>. Se opera y reasigna desde la ficha <a href="tomas.html">Tomas</a>. Activo = toma apagada.` : 'Reservado por el sistema.';
+    ed.innerHTML = head + `<p>${why}</p>
       ${p.mode === 'input' || p.mode === 'output' ? `<div class="io-state"><b>${p.active ? 'Activo' : 'Inactivo'}</b><span class="muted">nivel físico ${p.level}</span></div>` : ''}`;
     return;
   }

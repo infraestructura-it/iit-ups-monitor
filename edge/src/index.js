@@ -14,6 +14,7 @@ import { GpioService } from './gpio/gpio-service.js';
 import { BypassController } from './bypass/bypass-controller.js';
 import { Assistant } from './ai/assistant.js';
 import { Security } from './security/security.js';
+import { OutletBank } from './outlets/outlets.js';
 import path from 'node:path';
 import { log } from './util/log.js';
 
@@ -31,13 +32,18 @@ if (cfg.cloud.enabled) {
 const gpio = new GpioService(cfg.gpio, path.dirname(cfg.storage.path));
 await gpio.init();
 const bypass = new BypassController(cfg.bypass, gpio, () => ({ reading: state.latest, commOk: state.commOk }));
-const assistant = new Assistant(cfg.ai, { cfg, state, store, alarms, driver, gpio, bypass });
+const outlets = new OutletBank(cfg.outlets, gpio, () => ({ reading: state.latest, commOk: state.commOk }), path.dirname(cfg.storage.path));
+await outlets.init();
+if (driver.name === 'simulator') driver.loadProvider = () => outlets.totalW();
+const assistant = new Assistant(cfg.ai, { cfg, state, store, alarms, driver, gpio, bypass, outlets });
 const security = new Security(store.db, { legacyKey: cfg.api.commandKey || null });
-const api = createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant, security });
+const api = createServer({ cfg, store, driver, alarms, state, gpio, bypass, assistant, security, outlets });
 
 gpio.on('change', (p) => api.broadcast('gpio', p));
 bypass.on('state', (s) => api.broadcast('bypass', s));
 bypass.on('event', (e) => emit([e]));
+outlets.on('state', (s) => api.broadcast('outlets', s));
+outlets.on('event', (e) => emit([e]));
 try { await bypass.init(); }
 catch (e) { log.error('Bypass NO iniciado:', e.message); bypass.state = 'bloqueado'; bypass.lockReason = e.message; }
 
@@ -71,13 +77,19 @@ async function tick() {
   }
 }
 
-await api.listen();
+try { await api.listen(); }
+catch (e) {
+  if (e.code === 'EADDRINUSE') log.error(`El puerto ${cfg.api.port} ya está en uso. Cierra la otra instancia (Ctrl+C en su terminal) o define otro puerto con HTTP_PORT en el .env`);
+  else log.error('No se pudo iniciar el servidor web:', e.message);
+  process.exit(1);
+}
 log.info(`IIT UPS Monitor | equipo ${cfg.device.id} | driver ${driver.name} | http://${cfg.api.host}:${cfg.api.port}`);
 tick();
 
 async function shutdown() {
   log.info('Deteniendo servicio…');
   bypass.stop();
+  outlets.stop();
   state.cloud?.stop();
   await state.cloud?.push().catch(() => {});
   await driver.close().catch(() => {});

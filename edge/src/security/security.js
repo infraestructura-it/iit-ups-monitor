@@ -10,8 +10,8 @@ export const ROLE_TXT = { viewer: 'Lectura', operator: 'Operador', admin: 'Admin
 // Permiso -> rol mínimo
 export const PERMS = {
   read: 'viewer', 'report.export': 'viewer',
-  'ups.command': 'operator', 'gpio.set': 'operator', 'bypass.operate': 'operator', 'ai.confirm': 'operator',
-  'gpio.configure': 'admin', 'bypass.reset': 'admin', 'security.admin': 'admin',
+  'ups.command': 'operator', 'gpio.set': 'operator', 'outlets.operate': 'operator', 'bypass.operate': 'operator', 'ai.confirm': 'operator',
+  'gpio.configure': 'admin', 'bypass.reset': 'admin', 'outlets.configure': 'admin', 'security.admin': 'admin',
 };
 
 export const DEFAULT_SETTINGS = {

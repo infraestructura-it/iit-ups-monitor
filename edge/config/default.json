@@ -105,5 +105,10 @@
     "maxTokens": 1500,
     "maxToolRounds": 6,
     "maxRequestsPerHour": 60
+  },
+  "outlets": {
+    "relayActiveLow": true,
+    "tickMs": 1000,
+    "powerFactor": 0.9
   }
 }

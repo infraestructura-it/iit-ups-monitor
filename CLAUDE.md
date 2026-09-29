@@ -4,7 +4,7 @@ Guía para Claude Code en el repositorio `infraestructura-it/iit-ups-monitor`.
 
 ## Proyecto
 
-Monitoreo y control web de UPS con una **Raspberry Pi 5**. Infraestructura-IT, Bogotá. Todo web, por capas, en seis fichas (menú superior):
+Monitoreo y control web de UPS con una **Raspberry Pi 5**. Infraestructura-IT, Bogotá. Todo web, por capas, en siete fichas (menú superior):
 
 | Módulo | Página | Código |
 |---|---|---|
@@ -14,6 +14,7 @@ Monitoreo y control web de UPS con una **Raspberry Pi 5**. Infraestructura-IT, B
 | 4 IA | `edge/public/ia.html` | `edge/src/ai/assistant.js` |
 | 5 Reportes | `edge/public/reportes.html` | `edge/src/reports` (`report.js`, `excel.js`) |
 | 6 Seguridad | `edge/public/seguridad.html`, `login.html` | `edge/src/security` |
+| 7 Tomas | `edge/public/tomas.html` | `edge/src/outlets/outlets.js` |
 
 Capas: adquisición (drivers) → núcleo (SQLite, alarmas) → servicio web (Express + WebSocket + dashboard) → nube (Supabase, opcional).
 Detalle en `docs/ARQUITECTURA.md`; hardware en `docs/HARDWARE.md`; bypass en `docs/BYPASS.md`.
@@ -58,9 +59,9 @@ Todo driver devuelve el modelo unificado de `src/drivers/model.js` (`input`, `ou
 El módulo de bypass conmuta tensión de red. Cualquier cambio en `src/bypass` o `src/gpio` debe respetar:
 
 1. **Nunca ambos caminos cerrados.** La salida de la UPS y la red jamás en paralelo. Secuencia siempre break-before-make: abrir, tiempo muerto, verificar, cerrar.
-2. **Estado a prueba de fallas = carga en la UPS con todos los relés inactivos.** Si la Pi se apaga o el proceso muere, los relés se desenergizan. No invertir esta lógica.
-3. **Dueños de pines.** Un GPIO del bypass (`owner: 'bypass'`) no se puede modificar desde la web ni desde la IA.
-4. **La IA es de solo lectura sobre la UPS y el bypass.** Sobre GPIO solo propone; la ejecución requiere confirmación humana con `API_COMMAND_KEY`. No agregar herramientas que actúen directamente.
+2. **Estado a prueba de fallas = relés inactivos.** En el bypass: carga en la UPS. En las tomas: relé activo = toma APAGADA (contacto NC), así que con la Pi caída todas quedan energizadas. No invertir esta lógica.
+3. **Dueños de pines.** Un GPIO con dueño `bypass` o `tomas` no se puede modificar desde la ficha GPIO ni desde la IA; cada módulo gestiona los suyos (`claim` / `release`).
+4. **La IA es de solo lectura sobre la UPS, el bypass y las tomas.** Sobre GPIO solo propone; la ejecución requiere confirmación humana con `API_COMMAND_KEY`. No agregar herramientas que actúen directamente.
 5. **Toda ruta nueva de la API lleva `need('<permiso>')`** (ver `PERMS` en `src/security/security.js`). Lectura para ver, Operador para accionar, Administrador para configurar. Nada queda abierto por omisión.
 6. Todo cambio en el bypass va acompañado de pruebas en `test/bypass.test.js` que verifiquen la **secuencia física** de relés, no solo el estado final.
 7. Sesiones: cookie HttpOnly + SameSite=Strict, verificación de origen en métodos que modifican. Contraseñas con scrypt. Tokens de API guardados solo como hash SHA-256; se muestran una vez.
@@ -73,6 +74,7 @@ El módulo de bypass conmuta tensión de red. Cualquier cambio en `src/bypass` o
 - `test/ai.test.js`: herramientas y ciclo de uso de herramientas con `fetch` simulado. **No llamar a la API real en pruebas.**
 - `test/security.test.js`: contraseñas, instalación, roles, bloqueo por intentos, tokens, CIDR, auto-bloqueo.
 - `test/reports.test.js`: agregación, cortes de energía, Excel (se abre y verifica con exceljs), límite de filas.
+- `test/outlets.test.js`: conmutación a prueba de fallas, reinicio, desconexión y restauración en batería, persistencia, acoplamiento con la UPS simulada.
 - `test/fake-ups.js`: UPS Megatec falsa por puerto serie virtual (`socat`) para probar el driver real.
 
 ## Git
@@ -85,6 +87,7 @@ El módulo de bypass conmuta tensión de red. Cualquier cambio en `src/bypass` o
 ## Pendientes conocidos
 
 - Bypass: definir si el hardware será dos contactores (K1/K2, diseño actual) o un solo relé/contactor de conmutación (modo `changeover`, pendiente de implementar).
-- GPIO: expansores MCP23017 por I2C para superar las 26 líneas nativas.
+- GPIO: expansores MCP23017 por I2C para superar las 26 líneas nativas (las 17 tomas + bypass ya usan 21).
+- Tomas: medición real por toma (transformadores de corriente + ADC I2C); hoy es simulada.
 - IA: análisis automático al ocurrir eventos críticos.
 - Seguridad: HTTPS directo en la Pi (hoy se recomienda Cloudflare Tunnel o ZeroTier para acceso remoto); segundo factor (TOTP) para administradores.
